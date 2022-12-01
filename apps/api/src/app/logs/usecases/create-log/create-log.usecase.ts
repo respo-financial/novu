@@ -12,7 +12,8 @@ export class CreateLog {
       try {
         rawData = JSON.stringify(command.raw);
         // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } finally {
+      }
     }
 
     //

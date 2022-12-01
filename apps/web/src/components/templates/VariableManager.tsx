@@ -146,7 +146,8 @@ export const VariableManager = ({ index, contents, hideLabel = false }: Variable
   useMemo(() => {
     try {
       setAst(parse(textContent));
-    } catch (e) {}
+    } finally {
+    }
   }, [textContent]);
 
   function gatherTextContent(template = {}) {
