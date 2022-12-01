@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { TopicEntity, TopicRepository } from '@novu/dal';
+import { ConflictException, Injectable } from '@nestjs/common';
 
 import { CreateTopicCommand } from './create-topic.command';
 
 import { TopicDto } from '../../dtos/topic.dto';
+
+type PartialEntity = Pick<TopicEntity, '_environmentId' | '_organizationId' | '_userId' | 'key' | 'name'>;
 
 @Injectable()
 export class CreateTopicUseCase {
@@ -11,6 +13,18 @@ export class CreateTopicUseCase {
 
   async execute(command: CreateTopicCommand) {
     const entity = this.mapToEntity(command);
+
+    const topicExists = await this.topicRepository.findTopicByKey(
+      entity.key,
+      entity._userId,
+      entity._organizationId,
+      entity._environmentId
+    );
+
+    if (topicExists) {
+      throw new ConflictException(`There is already a topic with the key ${entity.key} for user ${entity._userId}`);
+    }
+
     const topic = await this.topicRepository.createTopic(entity);
 
     return this.mapFromEntity(topic);
