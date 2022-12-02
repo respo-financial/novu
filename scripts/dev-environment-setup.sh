@@ -63,7 +63,7 @@ refresh_shell() {
 
 get_user_groups() {
     # Get user groups
-    read -r -a USER_GROUP <<< "$(groups $USER)"
+    read -r -a USER_GROUP <<< $(groups "$USER")
 }
 
 set_user_dir_ownership() {
@@ -418,7 +418,7 @@ install_databases () {
         fi
     else
         skip_message "Databases"
-        echo $SKIP
+        echo "$SKIP"
     fi
 }
 
