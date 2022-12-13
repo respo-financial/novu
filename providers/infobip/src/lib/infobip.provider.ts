@@ -7,7 +7,10 @@ import {
   ISendMessageSuccessResponse,
   ISmsOptions,
   ISmsProvider,
+  ISMSEventBody,
+  SmsEventStatusEnum,
 } from '@novu/stateless';
+
 import { Infobip, AuthType } from '@infobip-api/sdk';
 
 export class InfobipSmsProvider implements ISmsProvider {
@@ -30,6 +33,60 @@ export class InfobipSmsProvider implements ISmsProvider {
     });
   }
 
+  getMessageId(body: any | any[]): string[] {
+    if (Array.isArray(body)) {
+      return body.map((item) => item.id);
+    }
+
+    return [body.id];
+  }
+
+  parseEventBody(
+    body: any | any[],
+    identifier: string
+  ): ISMSEventBody | undefined {
+    if (Array.isArray(body)) {
+      body = body.find((item) => item.MessageSid === identifier);
+    }
+
+    if (!body) {
+      return undefined;
+    }
+
+    const status = this.getStatus(body.MessageStatus);
+
+    if (status === undefined) {
+      return undefined;
+    }
+
+    return {
+      status: SmsEventStatusEnum.ACCEPTED,
+      date: body.date,
+      externalId: body.id,
+      attempts: body.attempt ? parseInt(body.attempt, 10) : 1,
+      response: body.response ? body.response : '',
+      row: body,
+    };
+  }
+
+  private getStatus(event: string): SmsEventStatusEnum | undefined {
+    switch (event) {
+      case 'accepted':
+        return SmsEventStatusEnum.ACCEPTED;
+      case 'queued':
+        return SmsEventStatusEnum.QUEUED;
+      case 'sending':
+        return SmsEventStatusEnum.SENDING;
+      case 'sent':
+        return SmsEventStatusEnum.SENT;
+      case 'failed':
+        return SmsEventStatusEnum.FAILED;
+      case 'delivered':
+        return SmsEventStatusEnum.DELIVERED;
+      case 'undelivered':
+        return SmsEventStatusEnum.UNDELIVERED;
+    }
+  }
   async sendMessage(
     options: ISmsOptions
   ): Promise<ISendMessageSuccessResponse> {
@@ -43,6 +100,12 @@ export class InfobipSmsProvider implements ISmsProvider {
             },
           ],
           from: this.config.from || options.from,
+          regional: {
+            indiaDlt: {
+              contentTemplateId: options.dltOptions.contentTemplateId,
+              principalEntityId: options.dltOptions.principalEntityId,
+            },
+          },
         },
       ],
     });

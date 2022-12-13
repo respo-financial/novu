@@ -5,7 +5,6 @@ import { MailFactory, SmsFactory, ISmsHandler, IMailHandler } from '@novu/applic
 import { ChannelTypeEnum } from '@novu/shared';
 import { GetWebhookSupportStatusCommand } from './get-webhook-support-status.command';
 import { ApiException } from '../../../shared/exceptions/api.exception';
-
 @Injectable()
 export class GetWebhookSupportStatus {
   public readonly mailFactory = new MailFactory();
@@ -54,12 +53,16 @@ export class GetWebhookSupportStatus {
   }
 
   private createProvider(integration: IntegrationEntity) {
-    const handler = this.getHandler(integration);
-    if (!handler) {
-      throw new NotFoundException(`Handler for integration of ${integration.providerId} was not found`);
-    }
-    handler.buildProvider({});
+    try {
+      const handler = this.getHandler(integration);
+      if (!handler) {
+        throw new NotFoundException(`Handler for integration of ${integration.providerId} was not found`);
+      }
+      handler.buildProvider(integration.credentials);
 
-    this.provider = handler.getProvider();
+      this.provider = handler.getProvider();
+    } catch (e) {
+      throw new NotFoundException(`${e.message} \\n ${e.stack}`);
+    }
   }
 }
