@@ -3,28 +3,6 @@ const fs = require('fs');
 const nodeModulesExist = fs.existsSync('node_modules');
 const envInitialized = fs.existsSync('apps/api/src/.env');
 
-async function reInstallProject() {
-  const inquirer = require('inquirer');
-
-  const questions = [
-    {
-      type: 'list',
-      name: 'reinstall',
-      message:
-        'Are you changing branches like socks? just came from another branch? Do you wish us to reinstall the project for you?',
-      choices: ['Yes', 'No'],
-    },
-  ];
-
-  await inquirer.prompt(questions).then(async (answers) => {
-    if (answers.reinstall === 'No') {
-      return;
-    }
-
-    return await setupProject();
-  });
-}
-
 const RUN_PROJECT = 'Run the project';
 const TEST_PROJECT = 'Test the project';
 
@@ -48,164 +26,75 @@ async function setupRunner() {
   const waitPort = require('wait-port');
   const inquirer = require('inquirer');
 
-  const questions = [
-    {
-      type: 'list',
-      name: 'action',
-      message: 'How can I help today?',
-      choices: [RUN_PROJECT, TEST_PROJECT, DEV_ENVIRONMENT_SETUP],
-    },
-    {
-      type: 'list',
-      name: 'runConfiguration',
-      message: 'What section of the project you want to run?',
-      choices: [FULL_PROJECT, WEB_AND_API, API_ONLY, DOCS],
-      when(answers) {
-        return answers.action === RUN_PROJECT;
-      },
-    },
-    {
-      type: 'list',
-      name: 'runConfiguration',
-      message: 'What section of the project you want to run?',
-      choices: [WEB_TESTS, API_TESTS],
-      when(answers) {
-        return answers.action === TEST_PROJECT;
-      },
-    },
-    {
-      type: 'list',
-      name: 'runApiConfiguration',
-      message: 'What section of the project you want to run?',
-      choices: [API_INTEGRATION_TESTS, API_E2E_TESTS],
-      when(answers) {
-        return answers.runConfiguration === API_TESTS;
-      },
-    },
-    {
-      type: 'list',
-      name: 'runWebConfiguration',
-      message: 'What section of the project you want to run?',
-      choices: [RUN_CYPRESS_UI, RUN_CYPRESS_CLI, RUN_CYPRESS_COMPONENT_CLI],
-      when(answers) {
-        return answers.runConfiguration === WEB_TESTS;
-      },
-    },
-  ];
+  /*
+   * const questions = [
+   *   {
+   *     type: 'list',
+   *     name: 'action',
+   *     message: 'How can I help today?',
+   *     choices: [RUN_PROJECT, TEST_PROJECT, DEV_ENVIRONMENT_SETUP],
+   *   },
+   *   {
+   *     type: 'list',
+   *     name: 'runConfiguration',
+   *     message: 'What section of the project you want to run?',
+   *     choices: [FULL_PROJECT, WEB_AND_API, API_ONLY, DOCS],
+   *     when(answers) {
+   *       return answers.action === RUN_PROJECT;
+   *     },
+   *   },
+   *   {
+   *     type: 'list',
+   *     name: 'runConfiguration',
+   *     message: 'What section of the project you want to run?',
+   *     choices: [WEB_TESTS, API_TESTS],
+   *     when(answers) {
+   *       return answers.action === TEST_PROJECT;
+   *     },
+   *   },
+   *   {
+   *     type: 'list',
+   *     name: 'runApiConfiguration',
+   *     message: 'What section of the project you want to run?',
+   *     choices: [API_INTEGRATION_TESTS, API_E2E_TESTS],
+   *     when(answers) {
+   *       return answers.runConfiguration === API_TESTS;
+   *     },
+   *   },
+   *   {
+   *     type: 'list',
+   *     name: 'runWebConfiguration',
+   *     message: 'What section of the project you want to run?',
+   *     choices: [RUN_CYPRESS_UI, RUN_CYPRESS_CLI, RUN_CYPRESS_COMPONENT_CLI],
+   *     when(answers) {
+   *       return answers.runConfiguration === WEB_TESTS;
+   *     },
+   *   },
+   * ];
+   */
+  shell.exec('npm run nx build @novu/api');
+  shell.exec('npm run start:dev', { async: true });
 
-  inquirer.prompt(questions).then(async (answers) => {
-    if (answers.action === DEV_ENVIRONMENT_SETUP) {
-      shell.exec('npm run dev-environment-setup');
-    } else if (answers.runConfiguration === FULL_PROJECT) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run start:dev', { async: true });
-
-      await waitPort({
-        host: 'localhost',
-        port: 3000,
-      });
-      await waitPort({
-        host: 'localhost',
-        port: 4500,
-      });
-      await waitPort({
-        host: 'localhost',
-        port: 4200,
-      });
-
-      // eslint-disable-next-line no-console
-      console.log(`
-Everything is running 🎊
-
-  Web: http://localhost:4200
-  API: http://localhost:3000
-    `);
-    } else if (answers.runConfiguration === WEB_AND_API) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run start:web', { async: true });
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      shell.exec('npm run start:api', { async: true });
-
-      await waitPort({
-        host: 'localhost',
-        port: 3000,
-      });
-
-      await waitPort({
-        host: 'localhost',
-        port: 4200,
-      });
-
-      // eslint-disable-next-line no-console
-      console.log(`
-Everything is running 🎊
-
-  Web: http://localhost:4200
-  API: http://localhost:3000
-    `);
-    } else if (answers.runConfiguration === DOCS) {
-      const spinner = ora('Building docs...').start();
-      shell.exec('npm run start:docs', { async: true });
-
-      await waitPort({
-        host: 'localhost',
-        port: 4040,
-      });
-
-      spinner.stop();
-      // eslint-disable-next-line no-console
-      console.clear();
-      // eslint-disable-next-line no-console
-      console.log(`
-Everything is running 🎊
-
-  Docs: http://localhost:4040
-    `);
-    } else if (answers.runConfiguration === API_ONLY) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run start:api');
-    } else if (answers.runApiConfiguration === API_INTEGRATION_TESTS) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run start:integration:api', { async: true });
-    } else if (answers.runApiConfiguration === API_E2E_TESTS) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run start:e2e:api', { async: true });
-    } else if ([RUN_CYPRESS_CLI, RUN_CYPRESS_UI].includes(answers.runWebConfiguration)) {
-      shell.exec('npm run nx build @novu/api');
-      shell.exec('npm run nx build @novu/ws');
-
-      shell.exec('npm run start:api:test', { async: true });
-      shell.exec('npm run start:ws:test', { async: true });
-      shell.exec('cd apps/web && npm run start', { async: true });
-
-      await waitPort({
-        host: 'localhost',
-        port: 1336,
-      });
-
-      await waitPort({
-        host: 'localhost',
-        port: 1340,
-      });
-
-      await waitPort({
-        host: 'localhost',
-        port: 4200,
-      });
-
-      if (answers.runWebConfiguration === RUN_CYPRESS_UI) {
-        shell.exec('cd apps/web && npm run cypress:open');
-      } else if (answers.runWebConfiguration === RUN_CYPRESS_CLI) {
-        shell.exec('cd apps/web && npm run cypress:run');
-      }
-    } else if (answers.runWebConfiguration === RUN_CYPRESS_COMPONENT_CLI) {
-      shell.exec('npm run nx build @novu/web');
-      shell.exec('cd apps/web && npm run cypress:run:components');
-    }
-
-    return true;
+  await waitPort({
+    host: 'localhost',
+    port: 3000,
   });
+  await waitPort({
+    host: 'localhost',
+    port: 4500,
+  });
+  await waitPort({
+    host: 'localhost',
+    port: 4200,
+  });
+
+  // eslint-disable-next-line no-console
+  console.log(`
+Everything is running 🎊
+
+  Web: http://localhost:4200
+  API: http://localhost:3000
+    `);
 }
 
 const informAboutInitialSetup = () => {
