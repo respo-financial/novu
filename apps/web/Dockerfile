@@ -1,4 +1,5 @@
 FROM nikolaik/python-nodejs:python3.10-nodejs16-alpine
+RUN apk update && apk add git
 
 WORKDIR /usr/src/app
 
@@ -32,5 +33,6 @@ RUN pnpm add @babel/core -w
 COPY [".eslintrc.js",".prettierrc",".prettierignore","./"]
 
 RUN NX_DAEMON=false pnpm build:web
-
+RUN chmod -R 777 ./apps/web/env.sh
+# RUN echo $(ls -1 .)
 CMD [ "pnpm", "start:static:web" ]

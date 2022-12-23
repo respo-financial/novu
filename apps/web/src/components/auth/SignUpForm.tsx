@@ -22,6 +22,7 @@ type Props = {
 export function SignUpForm({ token, email }: Props) {
   const navigate = useNavigate();
 
+  console.log(`API_ROOT is ${API_ROOT}`);
   const { setToken } = useContext(AuthContext);
   const { isLoading: loadingAcceptInvite, submitToken } = useAcceptInvite();
   const { isFromVercel, code, next, configurationId } = useVercelParams();

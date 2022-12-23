@@ -1,4 +1,5 @@
 FROM nikolaik/python-nodejs:python3.10-nodejs16-alpine
+RUN apk update && apk add git
 
 WORKDIR /usr/src/app
 
@@ -31,5 +32,5 @@ RUN pnpm install --reporter=silent
 RUN pnpm build
 
 RUN pnpm build:widget
-
+RUN chmod -R 777 ./apps/widget/env.sh
 CMD [ "pnpm", "start:static:widget" ]
