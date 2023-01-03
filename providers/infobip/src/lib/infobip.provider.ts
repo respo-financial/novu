@@ -102,8 +102,8 @@ export class InfobipSmsProvider implements ISmsProvider {
           from: this.config.from || options.from,
           regional: {
             indiaDlt: {
-              contentTemplateId: options.dltOptions.contentTemplateId,
-              principalEntityId: options.dltOptions.principalEntityId,
+              contentTemplateId: options.overrides?.contentTemplateId,
+              principalEntityId: options.overrides?.principalEntityId,
             },
           },
         },

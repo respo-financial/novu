@@ -4,6 +4,7 @@ node_modules
 src/**.js
 coverage
 *.log
+**/.env
 package-lock.json
 
 node_modules

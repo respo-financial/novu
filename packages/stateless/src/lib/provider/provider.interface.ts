@@ -25,7 +25,7 @@ export interface ISmsOptions {
   from?: string;
   attachments?: IAttachmentOptions[];
   id?: string;
-  dltOptions?: any;
+  overrides?: any;
 }
 export interface IPushOptions {
   target: string[];
