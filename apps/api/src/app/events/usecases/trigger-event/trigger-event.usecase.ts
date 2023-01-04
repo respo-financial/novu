@@ -89,7 +89,8 @@ export class TriggerEvent {
     );
 
     command.payload = merge({}, defaultPayload, command.payload);
-
+    // eslint-disable-next-line no-console
+    console.log(`Command is - ${JSON.stringify(command)}`);
     const jobs: JobEntity[][] = [];
 
     for (const subscriberToTrigger of command.to) {

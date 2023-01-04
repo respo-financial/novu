@@ -90,7 +90,7 @@ export class InfobipSmsProvider implements ISmsProvider {
   async sendMessage(
     options: ISmsOptions
   ): Promise<ISendMessageSuccessResponse> {
-    const infobipResponse = await this.infobipClient.channels.sms.send({
+    const messageBody = {
       messages: [
         {
           text: options.content,
@@ -108,8 +108,19 @@ export class InfobipSmsProvider implements ISmsProvider {
           },
         },
       ],
-    });
-    const { messageId } = infobipResponse.data.messages.pop();
+    };
+
+    // eslint-disable-next-line no-console
+    // console.log(`Options are ${JSON.stringify(options)}`);
+    // eslint-disable-next-line no-console
+    // console.log(`Message body for Infobip : ${JSON.stringify(messageBody)}`);
+    const infobipResponse = await this.infobipClient.channels.sms.send(
+      messageBody
+    );
+
+    // eslint-disable-next-line no-console
+    // console.log(`Infobip Response is : ${JSON.stringify(infobipResponse)}`);
+    const { messageId } = infobipResponse?.data?.messages?.pop();
 
     return {
       id: messageId,

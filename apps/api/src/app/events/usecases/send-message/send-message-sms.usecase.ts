@@ -291,6 +291,7 @@ export class SendMessageSms extends SendMessageType {
         content,
         attachments: null,
         id: message._id,
+        overrides,
       });
 
       await this.createExecutionDetails.execute(

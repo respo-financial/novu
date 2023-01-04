@@ -66,6 +66,8 @@ export class EventsController {
 
     await this.triggerEvent.validateTransactionIdProperty(transactionId, user.organizationId, user.environmentId);
 
+    // eslint-disable-next-line no-console
+    console.log(`Body to trigger event command - ${JSON.stringify(body)}`);
     const result = await this.triggerEvent.execute(
       TriggerEventCommand.create({
         userId: user._id,
